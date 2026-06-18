@@ -1,29 +1,65 @@
----
-page_type: sample
-description: "A WDF example of a mouse input filter driver."
-languages:
-- cpp
-products:
-- windows
-- windows-wdk
----
+# Windows Mouse Filter Research
 
-# Mouse Input WDF Filter Driver (Moufiltr)
+## Overview
 
-The Moufiltr sample is an example of a mouse input filter driver.
+This repository contains my learning and research work based on Microsoft's WDK Moufiltr sample driver.
 
-This sample is WDF version of the original WDM filter driver sample. The WDM version of this sample has been deprecated.
+The goal of the project was to understand how Windows processes mouse wheel input, how filter drivers work, and how wheel events can be intercepted, delayed and replayed inside the Windows kernel.
 
-This driver filters input for a particular mouse on the system. In its current state, it only hooks into the mouse packet report chain and the mouse ISR, and does not do any processing of the data that it sees. (The hooking of the ISR is only available in the i8042prt stack.) With additions to this current filter-only code base, the filter could conceivably add, remove, or modify input as needed.
+This project is intended for educational and research purposes only and is not production-ready.
 
-## Universal Windows Driver Compliant
+## What Was Explored
 
-This sample builds a Universal Windows Driver. It uses only APIs and DDIs that are included in OneCoreUAP.
+* Windows Driver Kit (WDK)
+* KMDF mouse filter drivers
+* UpperFilters
+* Mouse input stack:
 
-## Installation
+  * mouclass
+  * moufiltr
+  * mouhid
+  * hidusb
+* MOUSE_INPUT_DATA
+* MOUSE_WHEEL
+* Kernel timers (KTIMER, KDPC)
+* Kernel threads (PsCreateSystemThread)
+* Synchronization (KSPIN_LOCK, KEVENT)
 
-This sample is installed via an .inf file. The .inf file included in this sample is designed to filter a PS/2 mouse.
+## Experiments
 
-The .inf file must install the class driver (Mouclass) and the port driver (i8042prt, Mouhid, Sermouse, etc.) by using Msmouse.inf and the INF directives "Needs" and "Include".
+### Wheel Event Interception
 
-The .inf file must add the correct registry values for the class and port driver, as well as using the new directives.
+Wheel events were intercepted inside:
+
+MouFilter_ServiceCallback
+
+using:
+
+* MOUSE_INPUT_DATA
+* ButtonFlags
+* ButtonData
+* MOUSE_WHEEL
+
+### Delayed Playback
+
+Several approaches were tested:
+
+* WheelDeltaAccum
+* KTIMER + KDPC
+* Kernel thread + KEVENT
+* Event queue experiments
+
+### Lessons Learned
+
+The project demonstrated that:
+
+* Windows timer resolution affects scheduling accuracy.
+* A simple event counter is not a true FIFO queue.
+* Filter drivers are useful for interception and modification.
+* Virtual HID devices may be a better architecture for precise event replay.
+
+## Project Status
+
+Learning / Research Project
+
+This repository documents experiments with Windows mouse filter drivers and Windows kernel development.
