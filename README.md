@@ -2,11 +2,11 @@
 
 ## Overview
 
-This repository contains my learning and research work based on Microsoft's WDK `moufiltr` sample driver.
+This repository contains my learning and research work based on Microsoft's WDK Moufiltr sample driver.
 
-The goal of the project was to understand how Windows processes mouse input events, how filter drivers work, and how wheel input can be intercepted and modified inside the Windows kernel.
+The goal of the project was to understand how Windows processes mouse input, how mouse filter drivers work, and how wheel events can be intercepted and modified inside the Windows kernel.
 
-This is an educational project and is not intended for production use.
+This project is intended for educational and research purposes only and is not production-ready.
 
 ## Technologies
 
@@ -20,27 +20,82 @@ This is an educational project and is not intended for production use.
 ## What I Learned
 
 * Building and deploying KMDF drivers
-* Configuring UpperFilters for Mouse devices
+* Installing and removing mouse filter drivers
+* Working with UpperFilters
 * Understanding the Windows mouse input stack
+* Understanding the relationship between:
+
+  * mouclass
+  * moufiltr
+  * mouhid
+  * hidusb
+* Intercepting mouse wheel events
 * Working with MOUSE_INPUT_DATA structures
-* Intercepting wheel events in MouFilter_ServiceCallback
-* Using KTIMER and KDPC
-* Creating kernel threads with PsCreateSystemThread
-* Working with KEVENT and synchronization
 * Debugging kernel drivers with DebugView
 
-## Device Stack
+## Experiments
 
-mouclass
-↓
-moufiltr
-↓
-mouhid
-↓
-hidusb
+### Wheel Event Interception
+
+Wheel events were intercepted inside:
+
+MouFilter_ServiceCallback
+
+using:
+
+* MOUSE_INPUT_DATA
+* ButtonFlags
+* ButtonData
+* MOUSE_WHEEL
+
+### Timer-Based Processing
+
+Tested delayed wheel event playback using:
+
+* KTIMER
+* KDPC
+* KeSetTimerEx
+
+### Thread-Based Processing
+
+Tested an alternative implementation using:
+
+* PsCreateSystemThread
+* KEVENT
+* KeWaitForSingleObject
+* KeDelayExecutionThread
+
+### Event Queue Research
+
+Several approaches were tested:
+
+* WheelDeltaAccum
+* WheelQueueCount
+* Timer-based scheduling
+* Thread-based scheduling
+
+A future improvement would be implementing a proper FIFO ring buffer for wheel events.
+
+## Lessons Learned
+
+During the project I discovered several practical limitations:
+
+* Windows timer resolution affects scheduling accuracy.
+* Driver-generated timing does not always match timing observed by applications.
+* A simple event counter is not a true FIFO queue.
+* Filter drivers are useful for interception and modification but are not ideal for precise event replay.
+
+## Future Work
+
+Potential next steps:
+
+* Implement a real ring buffer queue.
+* Improve thread shutdown and cleanup.
+* Reduce debug logging.
+* Explore Virtual HID Device development.
 
 ## Project Status
 
-Research / Learning Project
+Learning / Research Project
 
-The project was created for educational purposes to explore Windows kernel development and input processing.
+The project was created to learn Windows kernel development, input processing, synchronization, timers, threads and mouse filter drivers.
